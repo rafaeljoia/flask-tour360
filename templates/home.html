@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bravia 360</title>
+</head>
+<body>
+  <h1>Bem-vindo à Bravia 360</h1>
+  <a href="/register">Cadastrar novo tour</a>
+  <ul>
+    {% for p in projects %}
+      <li><a href="/{{p}}">{{p}}</a></li>
+    {% endfor %}
+  </ul>
+</body>
+</html>

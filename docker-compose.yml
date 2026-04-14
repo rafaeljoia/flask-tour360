@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: bravia360
+    restart: always
+    volumes:
+      - ./uploads:/app/uploads
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.bravia.rule=Host(`tour360.braviaglobal.com.br`)
+      - traefik.http.services.bravia.loadbalancer.server.port=5000
