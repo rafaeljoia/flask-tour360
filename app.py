@@ -164,19 +164,26 @@ def delete_project(project):
 
 
 @app.route('/admin/rename/<project>', methods=['POST'])
-@admin_required
-def rename_project(project):
-    new_name = request.form.get('new_name', '').strip()
-    if not new_name or not new_name.replace('-', '').replace('_', '').isalnum():
-        return 'Nome invalido', 400
-    old_path = os.path.join(UPLOAD_FOLDER, project)
-    new_path = os.path.join(UPLOAD_FOLDER, new_name)
-    if not os.path.exists(old_path):
-        abort(404)
-    if os.path.exists(new_path):
-        return 'Ja existe um projeto com esse nome', 409
-    os.rename(old_path, new_path)
-    return redirect(url_for('home'))
+  @admin_required
+  def rename_project(project):
+      new_name = request.form.get('new_name', '').strip()
+      display_name = request.form.get('display_name', '').strip()
+      if not new_name or not new_name.replace('-', '').replace('_', '').isalnum():
+          return 'Nome invalido', 400
+      old_path = os.path.join(UPLOAD_FOLDER, project)
+      new_path = os.path.join(UPLOAD_FOLDER, new_name)
+      if not os.path.exists(old_path):
+          abort(404)
+      if new_name != project and os.path.exists(new_path):
+          return 'Ja existe um projeto com esse nome', 409
+      if new_name != project:
+          os.rename(old_path, new_path)
+      target_path = new_path if new_name != project else old_path
+      meta = get_project_meta(target_path)
+      meta['display_name'] = display_name or folder_to_display(new_name)
+      with open(os.path.join(target_path, 'meta.json'), 'w', encoding='utf-8') as fh:
+          json.dump(meta, fh, ensure_ascii=False)
+      return redirect(url_for('home'))
 
 
 # ── share page (Open Graph for WhatsApp / Telegram / social) ─────────────────
