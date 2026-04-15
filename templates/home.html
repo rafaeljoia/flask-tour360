@@ -73,7 +73,8 @@
       </div>
     </section>
 
-    <main class="flex-1 max-w-7xl mx-auto px-6 pb-16 w-full">
+    <main class="flex-1 max-w-7xl mx-auto px-6 pb-16 w-full" style="position:relative;">
+    <canvas id="cards-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
       {% if projects %}
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xs font-semibold uppercase tracking-wider" style="color:rgba(245,245,245,0.4)">
@@ -348,6 +349,130 @@
         camera.position.y = ty;
         camera.lookAt(scene.position);
 
+        renderer.render(scene, camera);
+      }
+      animate();
+    })();
+    </script>
+  
+
+    <!-- Three.js cards ambient particles + tilt effect -->
+    <script>
+    (function() {
+      // ── Tilt 3D on cards ────────────────────────────────────────
+      document.querySelectorAll('.tilt-card').forEach(function(li) {
+        const card = li.querySelector('.card');
+        li.addEventListener('mousemove', function(e) {
+          const rect = li.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width  - 0.5;
+          const y = (e.clientY - rect.top)  / rect.height - 0.5;
+          card.style.transform = [
+            'perspective(600px)',
+            'rotateY(' + (x * 14) + 'deg)',
+            'rotateX(' + (-y * 10) + 'deg)',
+            'scale3d(1.03,1.03,1.03)'
+          ].join(' ');
+          card.style.boxShadow = '0 16px 48px rgba(245,199,0,' + (Math.abs(x)+Math.abs(y)) * 0.18 + ')';
+        });
+        li.addEventListener('mouseleave', function() {
+          card.style.transform = '';
+          card.style.boxShadow = '';
+        });
+      });
+
+      // ── Three.js ambient particle field on cards section ────────
+      const canvas = document.getElementById('cards-canvas');
+      if (!canvas || typeof THREE === 'undefined') return;
+
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+      function resize() {
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        if (!w || !h) return;
+        renderer.setSize(w, h, false);
+      }
+      resize();
+      new ResizeObserver(resize).observe(canvas);
+
+      // Floating particles
+      const N = 120;
+      const pos   = new Float32Array(N * 3);
+      const vel   = new Float32Array(N * 2);
+      const sizes = new Float32Array(N);
+      const cols  = new Float32Array(N * 3);
+
+      for (let i = 0; i < N; i++) {
+        pos[i*3]   = Math.random() * 2 - 1;
+        pos[i*3+1] = Math.random() * 2 - 1;
+        pos[i*3+2] = 0;
+        vel[i*2]   = (Math.random() - 0.5) * 0.0006;
+        vel[i*2+1] = (Math.random() - 0.5) * 0.0006 - 0.0002;
+        sizes[i]   = Math.random() * 3 + 1.5;
+        const bright = Math.random() < 0.2;
+        cols[i*3]   = bright ? 0.96 : 0.3;
+        cols[i*3+1] = bright ? 0.78 : 0.28;
+        cols[i*3+2] = 0;
+      }
+
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color',    new THREE.BufferAttribute(cols, 3));
+      geo.setAttribute('size',     new THREE.BufferAttribute(sizes, 1));
+
+      const mat = new THREE.PointsMaterial({
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.45,
+        sizeAttenuation: false,
+      });
+      // Use sizes attribute via onBeforeCompile for variable point sizes
+      mat.onBeforeCompile = function(shader) {
+        shader.vertexShader = shader.vertexShader
+          .replace('void main() {', 'attribute float size;
+void main() {')
+          .replace('gl_PointSize = ', 'gl_PointSize = size * ');
+      };
+
+      const points = new THREE.Points(geo, mat);
+      scene.add(points);
+
+      // Mouse influence
+      let mx = 0, my = 0;
+      document.addEventListener('mousemove', function(e) {
+        const main = canvas.parentElement;
+        const r = main.getBoundingClientRect();
+        mx = ((e.clientX - r.left) / r.width)  * 2 - 1;
+        my = -((e.clientY - r.top)  / r.height) * 2 + 1;
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const pAttr = geo.attributes.position;
+        for (let i = 0; i < N; i++) {
+          // drift
+          pAttr.array[i*3]   += vel[i*2];
+          pAttr.array[i*3+1] += vel[i*2+1];
+
+          // subtle mouse attraction
+          const dx = mx - pAttr.array[i*3];
+          const dy = my - pAttr.array[i*3+1];
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 0.4) {
+            pAttr.array[i*3]   += dx * 0.0008;
+            pAttr.array[i*3+1] += dy * 0.0008;
+          }
+
+          // wrap edges
+          if (pAttr.array[i*3]   >  1.1) pAttr.array[i*3]   = -1.1;
+          if (pAttr.array[i*3]   < -1.1) pAttr.array[i*3]   =  1.1;
+          if (pAttr.array[i*3+1] >  1.1) pAttr.array[i*3+1] = -1.1;
+          if (pAttr.array[i*3+1] < -1.1) pAttr.array[i*3+1] =  1.1;
+        }
+        pAttr.needsUpdate = true;
         renderer.render(scene, camera);
       }
       animate();
