@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+  <html lang="pt-BR" prefix="og: http://ogp.me/ns#">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Open Graph / WhatsApp / Telegram / iMessage -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Bravia 360" />
+    <meta property="og:title" content="{{ display_name }} — Tour 360°" />
+    <meta property="og:description" content="Explore o tour virtual imersivo 360° — Bravia Technologies" />
+    <meta property="og:url" content="{{ share_url }}" />
+    {% if thumbnail_url %}
+    <meta property="og:image" content="{{ thumbnail_url }}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="{{ display_name }}" />
+    {% endif %}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ display_name }} — Tour 360°" />
+    <meta name="twitter:description" content="Explore o tour virtual imersivo 360° — Bravia Technologies" />
+    {% if thumbnail_url %}
+    <meta name="twitter:image" content="{{ thumbnail_url }}" />
+    {% endif %}
+
+    <title>{{ display_name }} — Tour 360° | Bravia</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background-color: #0C0C0C; color: #F5F5F5; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      .fade-up { animation: fadeUp 0.5s ease forwards; }
+      .btn-open {
+        display: inline-flex; align-items: center; gap: 10px;
+        background: #F5C700; color: #0C0C0C; font-weight: 700;
+        padding: 0.875rem 2rem; border-radius: 0.625rem;
+        font-size: 1rem; text-decoration: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 24px rgba(245,199,0,0.3);
+      }
+      .btn-open:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(245,199,0,0.4); }
+      .btn-back {
+        display: inline-flex; align-items: center; gap: 6px;
+        color: rgba(245,245,245,0.4); text-decoration: none; font-size: 0.875rem;
+        transition: color 0.2s;
+      }
+      .btn-back:hover { color: #F5F5F5; }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header style="border-bottom: 1px solid #1a1a1a; position: sticky; top: 0; z-index: 50; background: rgba(12,12,12,0.85); backdrop-filter: blur(8px);">
+      <div style="max-width:1200px; margin:0 auto; padding:1rem 1.5rem; display:flex; align-items:center; gap:1rem;">
+        <a href="/" class="btn-back">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+          Portfólio
+        </a>
+        <span style="color:#1a1a1a;">|</span>
+        <span style="font-size:1.25rem; font-weight:700;">
+          <span style="color:#F5C700">Bravia</span>
+          <span style="color:rgba(245,245,245,0.9)"> 360</span>
+        </span>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <main style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:3rem 1.5rem;">
+      <div class="fade-up" style="width:100%; max-width:700px; text-align:center;">
+
+        <!-- Thumbnail -->
+        {% if thumbnail_url %}
+        <div style="width:100%; aspect-ratio:16/9; border-radius:1rem; overflow:hidden; margin-bottom:2rem; position:relative; border:1px solid #1a1a1a; box-shadow:0 24px 80px rgba(0,0,0,0.6);">
+          <img src="{{ thumbnail_url }}" alt="{{ display_name }}"
+               style="width:100%; height:100%; object-fit:cover;"
+               onerror="this.parentElement.style.display='none'" />
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.4) 0%,transparent 50%)"></div>
+        </div>
+        {% else %}
+        <div style="width:100%; aspect-ratio:16/9; border-radius:1rem; background:#131313; margin-bottom:2rem; display:flex;align-items:center;justify-content:center; border:1px solid #1a1a1a;">
+          <div style="width:72px;height:72px;border-radius:50%;border:2px solid rgba(245,199,0,0.3);display:flex;align-items:center;justify-content:center;">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(245,199,0,0.6)" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Info -->
+        <p style="font-size:0.75rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#F5C700; margin-bottom:0.75rem;">
+          Tour Virtual 360°
+        </p>
+        <h1 style="font-size:2rem; font-weight:800; line-height:1.2; margin-bottom:0.75rem; color:#F5F5F5;">
+          {{ display_name }}
+        </h1>
+        <p style="color:rgba(245,245,245,0.45); font-size:0.9375rem; margin-bottom:2rem;">
+          Explore o ambiente de forma imersiva e interativa.<br/>
+          Navegue por todos os ângulos no seu próprio ritmo.
+        </p>
+
+        <!-- CTA -->
+        <a href="/{{ project_name }}/" class="btn-open">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          Abrir Tour 360°
+        </a>
+
+        <p style="margin-top:1.25rem; font-size:0.8125rem; color:rgba(245,245,245,0.25);">
+          Melhor visualizado em tela cheia
+        </p>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer style="border-top:1px solid #1a1a1a; padding:1.25rem 1.5rem;">
+      <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+        <p style="font-size:0.75rem; color:rgba(245,245,245,0.25);">
+          Powered by <a href="https://www.braviaglobal.com.br" target="_blank" style="color:#F5C700;text-decoration:none;font-weight:600;">Bravia Technologies</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+  </html>
