@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for, send_from_directory, abort, session
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from functools import wraps
 import os
 import zipfile
@@ -11,6 +12,9 @@ app.secret_key = os.environ.get('SECRET_KEY', 'bravia360-secret-key-change-in-pr
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+THUMB_FILENAME = 'thumbnail.jpg'
+ALLOWED_IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.webp'}
 
 USERS = {
     'admin': {
@@ -45,9 +49,29 @@ def admin_required(f):
     return decorated
 
 
+def find_thumbnail_in_project(project_path):
+    """Look for a thumbnail image inside the extracted project folder."""
+    candidates = ['thumbnail.jpg', 'thumbnail.jpeg', 'thumbnail.png', 'thumb.jpg',
+                  'preview.jpg', 'preview.png', 'cover.jpg', 'cover.png']
+    for name in candidates:
+        if os.path.isfile(os.path.join(project_path, name)):
+            return name
+    # Try root-level images
+    for f in os.listdir(project_path):
+        ext = os.path.splitext(f)[1].lower()
+        if ext in ALLOWED_IMAGE_EXTS:
+            return f
+    return None
+
+
 @app.route('/')
 def home():
-    projects = [d for d in os.listdir(UPLOAD_FOLDER) if os.path.isdir(os.path.join(UPLOAD_FOLDER, d))]
+    projects = []
+    for d in sorted(os.listdir(UPLOAD_FOLDER)):
+        path = os.path.join(UPLOAD_FOLDER, d)
+        if os.path.isdir(path):
+            thumb = find_thumbnail_in_project(path)
+            projects.append({'name': d, 'thumbnail': thumb})
     current_user = session.get('user')
     current_role = USERS.get(current_user, {}).get('role') if current_user else None
     return render_template('home.html', projects=projects, current_user=current_user, current_role=current_role)
@@ -78,17 +102,22 @@ def logout():
 @login_required
 def register():
     if request.method == 'POST':
-        file = request.files['file']
-        project_name = request.form['project_name']
+        file = request.files.get('file')
+        project_name = request.form.get('project_name', '').strip()
+        thumbnail_file = request.files.get('thumbnail')
         if not file or not project_name:
             return 'Arquivo e nome sao obrigatorios', 400
-        project_path = os.path.join(UPLOAD_FOLDER, project_name)
+        project_path = os.path.join(UPLOAD_FOLDER, secure_filename(project_name))
         os.makedirs(project_path, exist_ok=True)
         zip_path = os.path.join(project_path, 'project.zip')
         file.save(zip_path)
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(project_path)
         os.remove(zip_path)
+        if thumbnail_file and thumbnail_file.filename:
+            ext = os.path.splitext(thumbnail_file.filename)[1].lower()
+            if ext in ALLOWED_IMAGE_EXTS:
+                thumbnail_file.save(os.path.join(project_path, THUMB_FILENAME))
         return redirect(url_for('home'))
     return render_template('register.html')
 
@@ -99,8 +128,7 @@ def delete_project(project):
     project_path = os.path.join(UPLOAD_FOLDER, project)
     if not os.path.exists(project_path):
         abort(404)
-    import shutil as _shutil
-    _shutil.rmtree(project_path)
+    shutil.rmtree(project_path)
     return redirect(url_for('home'))
 
 
