@@ -386,7 +386,7 @@
         const x = (e.clientX - rect.left) / rect.width  - 0.5;
         const y = (e.clientY - rect.top)  / rect.height - 0.5;
         card.style.transform = `perspective(450px) rotateY(${x*22}deg) rotateX(${-y*16}deg) scale3d(1.06,1.06,1.06)`;
-        card.style.boxShadow = `0 20px 60px rgba(245,199,0,${(Math.abs(x)+Math.abs(y))*0.32})`;
+        card.style.boxShadow = `0 20px 60px rgba(245,199,0,${(Math.abs(x)+Math.abs(y))*0.5}`;
       });
       li.addEventListener('mouseleave', () => {
         card.style.transform = '';
