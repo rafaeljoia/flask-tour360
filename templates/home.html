@@ -13,10 +13,14 @@
       body { background-color: #0C0C0C; color: #F5F5F5; font-family: 'Inter', sans-serif; margin: 0; }
       @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
       .fade-up { animation: fadeUp 0.45s ease forwards; }
-      .card:hover .admin-actions { opacity: 1; }
-      .admin-actions { opacity: 0; transition: opacity 0.2s; }
       .card { transition: border-color 0.3s, box-shadow 0.3s; }
       .card:hover { border-color: rgba(245,199,0,0.4); box-shadow: 0 4px 32px rgba(245,199,0,0.05); }
+      .card .admin-actions { opacity: 0; transition: opacity 0.2s; }
+      .card:hover .admin-actions { opacity: 1; }
+      .thumb-overlay { opacity: 0; transition: opacity 0.3s; }
+      .card:hover .thumb-overlay { opacity: 1; }
+      .thumb-img { transition: transform 0.5s ease; }
+      .card:hover .thumb-img { transform: scale(1.05); }
     </style>
   </head>
   <body class="min-h-screen flex flex-col">
@@ -36,14 +40,12 @@
               {% endif %}
             </div>
             <form action="/logout" method="POST" class="m-0">
-              <button type="submit" class="text-xs px-3 py-2 rounded-lg transition-colors" style="color:rgba(245,245,245,0.5);" onmouseover="this.style.color='#F5F5F5'" onmouseout="this.style.color='rgba(245,245,245,0.5)'">Sair</button>
+              <button type="submit" class="text-xs px-3 py-2 rounded-lg" style="color:rgba(245,245,245,0.5);" onmouseover="this.style.color='#F5F5F5'" onmouseout="this.style.color='rgba(245,245,245,0.5)'">Sair</button>
             </form>
           {% else %}
-            <a href="/login" class="text-sm px-3 py-2 rounded-lg transition-colors" style="color:rgba(245,245,245,0.5);" onmouseover="this.style.color='#F5F5F5'" onmouseout="this.style.color='rgba(245,245,245,0.5)'">Entrar</a>
+            <a href="/login" class="text-sm px-3 py-2 rounded-lg" style="color:rgba(245,245,245,0.5);" onmouseover="this.style.color='#F5F5F5'" onmouseout="this.style.color='rgba(245,245,245,0.5)'">Entrar</a>
           {% endif %}
-          <a href="{% if current_user %}/register{% else %}/login{% endif %}" class="text-sm font-semibold px-4 py-2 rounded-md transition-opacity" style="background:#F5C700; color:#0C0C0C;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-            + Novo Tour
-          </a>
+          <a href="{% if current_user %}/register{% else %}/login{% endif %}" class="text-sm font-semibold px-4 py-2 rounded-md" style="background:#F5C700; color:#0C0C0C;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">+ Novo Tour</a>
         </div>
       </div>
     </header>
@@ -51,54 +53,70 @@
     <section class="max-w-7xl mx-auto px-6 pt-16 pb-10 w-full fade-up">
       <p class="text-xs font-semibold tracking-widest uppercase mb-3" style="color:#F5C700">Plataforma de Tours Imersivos</p>
       <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4 leading-tight">
-        Experiências 360°<br />
+        Experiencias 360<br />
         <span style="color:#F5C700">ao seu alcance</span>
       </h1>
       <p class="text-base max-w-lg leading-relaxed" style="color:rgba(245,245,245,0.5)">
         Gerencie e compartilhe tours virtuais imersivos com facilidade.
-        Cadastre projetos, acesse e publique experiências 360° de forma rápida.
+        Cadastre projetos, acesse e publique experiencias 360 de forma rapida.
       </p>
     </section>
 
     <main class="flex-1 max-w-7xl mx-auto px-6 pb-16 w-full">
       {% if projects %}
         <div class="flex items-center justify-between mb-6">
-          <h2 class="text-xs font-semibold uppercase tracking-wider" style="color:rgba(245,245,245,0.4)">
-            Tours disponíveis ({{ projects|length }})
-          </h2>
+          <h2 class="text-xs font-semibold uppercase tracking-wider" style="color:rgba(245,245,245,0.4)">Tours disponiveis ({{ projects|length }})</h2>
         </div>
         <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" style="list-style:none; padding:0; margin:0;">
           {% for project in projects %}
           <li>
             <div class="card border rounded-xl p-6 relative" style="border-color:#1a1a1a; background:#0e0e0e;">
-              <a href="/{{ project }}/" target="_blank" rel="noopener noreferrer">
-                <div class="w-full rounded-lg mb-4 flex items-center justify-center" style="background:#131313; aspect-ratio:16/9;">
-                  <div class="w-14 h-14 rounded-full flex items-center justify-center" style="border: 2px solid rgba(245,199,0,0.3);">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,245,0.4)" stroke-width="1.5">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                    </svg>
-                  </div>
+              <a href="/{{ project.name }}/" target="_blank" rel="noopener noreferrer">
+                <div class="w-full rounded-xl mb-4 overflow-hidden relative" style="aspect-ratio:16/9; background:#131313;">
+                  {% if project.thumbnail %}
+                    <img
+                      class="thumb-img w-full h-full object-cover"
+                      src="/{{ project.name }}/{{ project.thumbnail }}"
+                      alt="{{ project.name }}"
+                      onerror="this.parentElement.innerHTML='<div class='w-full h-full flex items-center justify-center'><div style='width:56px;height:56px;border-radius:50%;border:2px solid rgba(245,199,0,0.3);display:flex;align-items:center;justify-content:center;'><svg width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='rgba(245,245,245,0.4)' stroke-width='1.5'><circle cx='12' cy='12' r='10'/><path d='M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/></svg></div></div>'"
+                    />
+                    <div class="thumb-overlay absolute inset-0 flex items-center justify-center" style="background: rgba(0,0,0,0.3);">
+                      <div style="background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);border-radius:50%;padding:12px;border:1px solid rgba(255,255,255,0.2);">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+                          <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                      </div>
+                    </div>
+                  {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                      <div style="width:56px;height:56px;border-radius:50%;border:2px solid rgba(245,199,0,0.3);display:flex;align-items:center;justify-content:center;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,245,0.4)" stroke-width="1.5">
+                          <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                      </div>
+                    </div>
+                  {% endif %}
                 </div>
               </a>
+
               <div class="flex items-start justify-between gap-2">
                 <div class="min-w-0 flex-1">
-                  <h3 class="font-semibold text-sm truncate" style="color:#F5F5F5">{{ project }}</h3>
-                  <p class="text-xs mt-0.5 font-mono truncate" style="color:rgba(245,245,245,0.35)">/{{ project }}</p>
+                  <h3 class="font-semibold text-sm truncate" style="color:#F5F5F5">{{ project.name }}</h3>
+                  <p class="text-xs mt-0.5 font-mono truncate" style="color:rgba(245,245,245,0.35)">/{{ project.name }}</p>
                 </div>
                 {% if current_role == 'admin' %}
                 <div class="admin-actions flex items-center gap-1 flex-shrink-0">
-                  <form action="/admin/rename/{{ project }}" method="POST" class="m-0" onsubmit="return promptRename(this, '{{ project }}')">
-                    <input type="hidden" name="new_name" id="rename-{{ project }}" value="{{ project }}" />
-                    <button type="submit" title="Renomear" class="p-1.5 rounded-md transition-colors" style="color:rgba(245,245,245,0.4);" onmouseover="this.style.color='#F5C700'; this.style.background='rgba(245,199,0,0.1)'" onmouseout="this.style.color='rgba(245,245,245,0.4)'; this.style.background='transparent'">
+                  <form action="/admin/rename/{{ project.name }}" method="POST" class="m-0" onsubmit="return promptRename(this, '{{ project.name }}')">
+                    <input type="hidden" name="new_name" id="rename-{{ project.name }}" value="{{ project.name }}" />
+                    <button type="submit" title="Renomear" class="p-1.5 rounded-md" style="color:rgba(245,245,245,0.4);" onmouseover="this.style.color='#F5C700';this.style.background='rgba(245,199,0,0.1)'" onmouseout="this.style.color='rgba(245,245,245,0.4)';this.style.background='transparent'">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                       </svg>
                     </button>
                   </form>
-                  <form action="/admin/delete/{{ project }}" method="POST" class="m-0" onsubmit="return confirm('Excluir tour {{ project }}?')">
-                    <button type="submit" title="Excluir" class="p-1.5 rounded-md transition-colors" style="color:rgba(245,245,245,0.4);" onmouseover="this.style.color='#ef4444'; this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.color='rgba(245,245,245,0.4)'; this.style.background='transparent'">
+                  <form action="/admin/delete/{{ project.name }}" method="POST" class="m-0" onsubmit="return confirm('Excluir tour {{ project.name }}?')">
+                    <button type="submit" title="Excluir" class="p-1.5 rounded-md" style="color:rgba(245,245,245,0.4);" onmouseover="this.style.color='#ef4444';this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.color='rgba(245,245,245,0.4)';this.style.background='transparent'">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
                       </svg>
@@ -119,17 +137,15 @@
             </svg>
           </div>
           <p class="text-sm mb-4" style="color:rgba(245,245,245,0.4)">Nenhum tour cadastrado ainda.</p>
-          <a href="{% if current_user %}/register{% else %}/login{% endif %}" class="inline-block text-sm font-semibold px-5 py-2 rounded-md transition-opacity" style="background:#F5C700; color:#0C0C0C;">Cadastrar primeiro tour</a>
+          <a href="{% if current_user %}/register{% else %}/login{% endif %}" class="inline-block text-sm font-semibold px-5 py-2 rounded-md" style="background:#F5C700; color:#0C0C0C;">Cadastrar primeiro tour</a>
         </div>
       {% endif %}
     </main>
 
     <footer class="border-t" style="border-color:#1a1a1a; background:#0e0e0e;">
       <div class="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p class="text-xs" style="color:rgba(245,245,245,0.3)">
-          &copy; {{ now().year if now is defined else 2026 }} <span style="color:#F5C700; font-weight:600">Bravia Technologies</span>. Todos os direitos reservados.
-        </p>
-        <a href="https://www.braviaglobal.com.br" target="_blank" rel="noopener noreferrer" class="text-xs transition-colors" style="color:rgba(245,245,245,0.3);" onmouseover="this.style.color='#F5C700'" onmouseout="this.style.color='rgba(245,245,245,0.3)'">braviaglobal.com.br</a>
+        <p class="text-xs" style="color:rgba(245,245,245,0.3)">&copy; 2026 <span style="color:#F5C700;font-weight:600">Bravia Technologies</span>. Todos os direitos reservados.</p>
+        <a href="https://www.braviaglobal.com.br" target="_blank" rel="noopener noreferrer" class="text-xs" style="color:rgba(245,245,245,0.3);" onmouseover="this.style.color='#F5C700'" onmouseout="this.style.color='rgba(245,245,245,0.3)'">braviaglobal.com.br</a>
       </div>
     </footer>
 
@@ -137,7 +153,7 @@
       function promptRename(form, currentName) {
         const newName = prompt('Novo nome para o tour (slug):', currentName);
         if (!newName || newName === currentName) return false;
-        if (!/^[a-z0-9_-]+$/.test(newName)) { alert('Use apenas letras minúsculas, números, hífens e underscores.'); return false; }
+        if (!/^[a-z0-9_-]+$/.test(newName)) { alert('Use apenas letras minusculas, numeros, hifens e underscores.'); return false; }
         document.getElementById('rename-' + currentName).value = newName;
         return true;
       }
