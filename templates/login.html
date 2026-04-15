@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+  <html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entrar — Bravia 360</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { background-color: #0C0C0C; color: #F5F5F5; font-family: 'Inter', sans-serif; }
+      input { background: #131313; border: 1px solid #222; color: #F5F5F5; border-radius: 0.5rem; padding: 0.625rem 1rem; width: 100%; font-size: 0.875rem; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
+      input:focus { border-color: #F5C700; box-shadow: 0 0 0 3px rgba(245,199,0,0.15); }
+      input::placeholder { color: rgba(245,245,245,0.3); }
+      .btn-primary { background: #F5C700; color: #0C0C0C; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 0.875rem; width: 100%; cursor: pointer; border: none; transition: opacity 0.2s; }
+      .btn-primary:hover { opacity: 0.9; }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+      .fade-up { animation: fadeUp 0.45s ease forwards; }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <header class="border-b sticky top-0 z-50 backdrop-blur-sm" style="border-color:#1a1a1a; background: rgba(12,12,12,0.85);">
+      <div class="max-w-6xl mx-auto px-6 py-4">
+        <a href="/" class="text-2xl font-bold tracking-tight">
+          <span style="color:#F5C700">Bravia</span>
+          <span style="color: rgba(245,245,245,0.9)"> 360</span>
+        </a>
+      </div>
+    </header>
+    <main class="flex-1 flex items-center justify-center px-6 py-16">
+      <div class="w-full max-w-sm fade-up">
+        <div class="mb-8 text-center">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background: rgba(245,199,0,0.1); border: 1px solid rgba(245,199,0,0.2);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5C700" stroke-width="1.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color:#F5C700">Acesso Restrito</p>
+          <h1 class="text-2xl font-bold">Entrar</h1>
+          <p class="text-sm mt-1" style="color: rgba(245,245,245,0.45)">Faça login para gerenciar os tours</p>
+        </div>
+        <form method="POST" class="space-y-4">
+          <input type="hidden" name="next" value="{{ request.args.get('next', '') }}" />
+          <div>
+            <label class="block text-sm font-medium mb-1.5">Usuário</label>
+            <input type="text" name="username" placeholder="Digite seu usuário" autocomplete="username" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1.5">Senha</label>
+            <input type="password" name="password" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autocomplete="current-password" required />
+          </div>
+          {% if error %}
+          <div class="flex items-center gap-2 rounded-lg px-4 py-3 text-sm" style="background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3); color: #f87171;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {{ error }}
+          </div>
+          {% endif %}
+          <button type="submit" class="btn-primary">Entrar</button>
+        </form>
+        <p class="text-center text-xs mt-6" style="color: rgba(245,245,245,0.3)">Acesso restrito a usuários autorizados</p>
+      </div>
+    </main>
+  </body>
+  </html>
