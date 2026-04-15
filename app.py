@@ -1,53 +1,145 @@
-from flask import Flask, request, render_template, redirect, url_for, send_from_directory, abort
-import os
-import zipfile
+from flask import Flask, request, render_template, redirect, url_for, send_from_directory, abort, session, jsonify
+  from werkzeug.security import generate_password_hash, check_password_hash
+  from functools import wraps
+  import os
+  import zipfile
+  import shutil
 
-app = Flask(__name__)
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+  app = Flask(__name__)
+  app.secret_key = os.environ.get('SECRET_KEY', 'bravia360-secret-key-change-in-production')
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+  BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+  UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+  os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@app.route('/')
-def home():
-    projects = [d for d in os.listdir(UPLOAD_FOLDER) if os.path.isdir(os.path.join(UPLOAD_FOLDER, d))]
-    return render_template('home.html', projects=projects)
+  # Users — change passwords via env vars in production
+  USERS = {
+      'admin': {
+          'password_hash': generate_password_hash(os.environ.get('ADMIN_PASSWORD', 'bravia360')),
+          'role': 'admin'
+      },
+      'viewer': {
+          'password_hash': generate_password_hash(os.environ.get('VIEWER_PASSWORD', 'bravia123')),
+          'role': 'user'
+      },
+  }
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        file = request.files['file']
-        project_name = request.form['project_name']
 
-        if not file or not project_name:
-            return 'Arquivo e nome são obrigatórios', 400
+  def login_required(f):
+      @wraps(f)
+      def decorated(*args, **kwargs):
+          if not session.get('user'):
+              return redirect(url_for('login', next=request.url))
+          return f(*args, **kwargs)
+      return decorated
 
-        project_path = os.path.join(UPLOAD_FOLDER, project_name)
-        os.makedirs(project_path, exist_ok=True)
 
-        zip_path = os.path.join(project_path, 'project.zip')
-        file.save(zip_path)
+  def admin_required(f):
+      @wraps(f)
+      def decorated(*args, **kwargs):
+          user = session.get('user')
+          if not user:
+              return redirect(url_for('login'))
+          if USERS.get(user, {}).get('role') != 'admin':
+              abort(403)
+          return f(*args, **kwargs)
+      return decorated
 
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(project_path)
 
-        os.remove(zip_path)
+  @app.route('/')
+  def home():
+      projects = [d for d in os.listdir(UPLOAD_FOLDER) if os.path.isdir(os.path.join(UPLOAD_FOLDER, d))]
+      current_user = session.get('user')
+      current_role = USERS.get(current_user, {}).get('role') if current_user else None
+      return render_template('home.html', projects=projects, current_user=current_user, current_role=current_role)
 
-        return redirect(url_for('home'))
 
-    return render_template('register.html')
+  @app.route('/login', methods=['GET', 'POST'])
+  def login():
+      error = None
+      if request.method == 'POST':
+          username = request.form.get('username', '').strip()
+          password = request.form.get('password', '')
+          user = USERS.get(username)
+          if user and check_password_hash(user['password_hash'], password):
+              session['user'] = username
+              next_url = request.form.get('next') or url_for('home')
+              return redirect(next_url)
+          error = 'Usuário ou senha inválidos'
+      return render_template('login.html', error=error)
 
-@app.route('/<project>/')
-def serve_project(project):
-    project_path = os.path.join(UPLOAD_FOLDER, project)
-    if not os.path.exists(project_path):
-        abort(404)
-    return send_from_directory(project_path, 'index.html')
 
-@app.route('/<project>/<path:path>')
-def serve_static(project, path):
-    project_path = os.path.join(UPLOAD_FOLDER, project)
-    return send_from_directory(project_path, path)
+  @app.route('/logout', methods=['POST'])
+  def logout():
+      session.clear()
+      return redirect(url_for('home'))
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+
+  @app.route('/register', methods=['GET', 'POST'])
+  @login_required
+  def register():
+      if request.method == 'POST':
+          file = request.files['file']
+          project_name = request.form['project_name']
+
+          if not file or not project_name:
+              return 'Arquivo e nome são obrigatórios', 400
+
+          project_path = os.path.join(UPLOAD_FOLDER, project_name)
+          os.makedirs(project_path, exist_ok=True)
+
+          zip_path = os.path.join(project_path, 'project.zip')
+          file.save(zip_path)
+
+          with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+              zip_ref.extractall(project_path)
+
+          os.remove(zip_path)
+          return redirect(url_for('home'))
+
+      return render_template('register.html')
+
+
+  @app.route('/admin/delete/<project>', methods=['POST'])
+  @admin_required
+  def delete_project(project):
+      project_path = os.path.join(UPLOAD_FOLDER, project)
+      if not os.path.exists(project_path):
+          abort(404)
+      shutil.rmtree(project_path)
+      return redirect(url_for('home'))
+
+
+  @app.route('/admin/rename/<project>', methods=['POST'])
+  @admin_required
+  def rename_project(project):
+      new_name = request.form.get('new_name', '').strip()
+      if not new_name or not new_name.replace('-', '').replace('_', '').isalnum():
+          return 'Nome inválido', 400
+      old_path = os.path.join(UPLOAD_FOLDER, project)
+      new_path = os.path.join(UPLOAD_FOLDER, new_name)
+      if not os.path.exists(old_path):
+          abort(404)
+      if os.path.exists(new_path):
+          return 'Já existe um projeto com esse nome', 409
+      os.rename(old_path, new_path)
+      return redirect(url_for('home'))
+
+
+  @app.route('/<project>/')
+  def serve_project(project):
+      project_path = os.path.join(UPLOAD_FOLDER, project)
+      if not os.path.exists(project_path):
+          abort(404)
+      return send_from_directory(project_path, 'index.html')
+
+
+  @app.route('/<project>/<path:path>')
+  def serve_static(project, path):
+      project_path = os.path.join(UPLOAD_FOLDER, project)
+      return send_from_directory(project_path, path)
+
+
+  if __name__ == '__main__':
+      app.run(host='0.0.0.0', port=5000)
+  
