@@ -9,90 +9,134 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      body { background-color: #0C0C0C; color: #F5F5F5; font-family: 'Inter', sans-serif; }
-      input[type="text"], input[type="file"] { background: #131313; border: 1px solid #222; color: #F5F5F5; border-radius: 0.5rem; padding: 0.625rem 1rem; width: 100%; font-size: 0.875rem; transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
-      input[type="text"]:focus { border-color: #F5C700; box-shadow: 0 0 0 3px rgba(245,199,0,0.15); }
-      input[type="text"]::placeholder { color: rgba(245,245,245,0.3); }
-      .btn-primary { background: #F5C700; color: #0C0C0C; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-size: 0.875rem; width: 100%; cursor: pointer; border: none; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-      .btn-primary:hover { opacity: 0.9; }
-      .drop-area { border: 2px dashed #222; border-radius: 0.75rem; padding: 2.5rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; background: #131313; }
+      * { box-sizing: border-box; }
+      body { background-color: #0C0C0C; color: #F5F5F5; font-family: 'Inter', sans-serif; margin: 0; }
+      .field-input {
+        background: #131313; border: 1px solid #222; color: #F5F5F5;
+        border-radius: 0.5rem; padding: 0.625rem 1rem; width: 100%;
+        font-size: 0.875rem; outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .field-input:focus { border-color: #F5C700; box-shadow: 0 0 0 3px rgba(245,199,0,0.15); }
+      .field-input::placeholder { color: rgba(245,245,245,0.3); }
+      .field-input.with-prefix { padding-left: 1.5rem; }
+      .prefix { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+                 color: rgba(245,245,245,0.35); font-size: 0.875rem; font-family: monospace; pointer-events: none; }
+      .drop-area { border: 2px dashed #222; border-radius: 0.75rem; padding: 2rem;
+                   text-align: center; cursor: pointer; background: #131313;
+                   transition: border-color 0.2s, background 0.2s; }
       .drop-area:hover, .drop-area.dragover { border-color: rgba(245,199,0,0.5); background: rgba(245,199,0,0.04); }
       .drop-area.has-file { border-color: rgba(245,199,0,0.4); background: rgba(245,199,0,0.04); }
-      .prefix { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: rgba(245,245,245,0.35); font-size: 0.875rem; font-family: monospace; pointer-events: none; }
-      .input-with-prefix { padding-left: 1.5rem !important; }
+      .thumb-area { border: 2px dashed #222; border-radius: 0.75rem; overflow: hidden;
+                    cursor: pointer; background: #131313; transition: border-color 0.2s, background 0.2s; }
+      .thumb-area:hover { border-color: rgba(245,199,0,0.4); background: rgba(245,199,0,0.04); }
+      .thumb-area.has-preview { border-color: rgba(245,199,0,0.4); padding: 0; }
+      .btn-primary { background: #F5C700; color: #0C0C0C; font-weight: 600; padding: 0.75rem 1.5rem;
+                     border-radius: 0.5rem; font-size: 0.875rem; width: 100%; cursor: pointer;
+                     border: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+      .btn-primary:hover { opacity: 0.9; }
       @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
       .fade-up { animation: fadeUp 0.45s ease forwards; }
     </style>
   </head>
   <body class="min-h-screen">
-    <!-- Header -->
     <header class="border-b sticky top-0 z-50 backdrop-blur-sm" style="border-color:#1a1a1a; background: rgba(12,12,12,0.85);">
       <div class="max-w-6xl mx-auto px-6 py-4 flex items-center gap-4">
-        <a href="/" class="flex items-center gap-2 text-sm transition-colors" style="color: rgba(245,245,245,0.45);" onmouseover="this.style.color='#F5F5F5'" onmouseout="this.style.color='rgba(245,245,245,0.45)'">
+        <a href="/" class="flex items-center gap-2 text-sm" style="color:rgba(245,245,245,0.45);"
+           onmouseover="this.style.color='#F5F5F5'" onmouseout="this.style.color='rgba(245,245,245,0.45)'">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 12H5M12 5l-7 7 7 7"/>
           </svg>
           Voltar
         </a>
-        <span style="color:#222;">|</span>
-        <div class="text-2xl font-bold tracking-tight">
+        <span style="color:#222">|</span>
+        <span class="text-2xl font-bold tracking-tight">
           <span style="color:#F5C700">Bravia</span>
-          <span style="color: rgba(245,245,245,0.9)"> 360</span>
-        </div>
+          <span style="color:rgba(245,245,245,0.9)"> 360</span>
+        </span>
       </div>
     </header>
 
-    <!-- Form -->
     <main class="flex items-center justify-center px-6 py-16 min-h-[calc(100vh-65px)]">
       <div class="w-full max-w-lg fade-up">
         <div class="mb-8">
           <p class="text-xs font-semibold tracking-widest uppercase mb-2" style="color:#F5C700">Novo Projeto</p>
           <h1 class="text-3xl font-bold mb-2">Enviar novo tour</h1>
-          <p class="text-sm leading-relaxed" style="color: rgba(245,245,245,0.5)">
-            Faça o upload do arquivo ZIP com o seu tour 360° e defina o nome da URL de acesso.
+          <p class="text-sm leading-relaxed" style="color:rgba(245,245,245,0.5)">
+            Faca o upload do arquivo ZIP com o seu tour 360 e defina o nome da URL de acesso.
           </p>
         </div>
 
         <form method="POST" enctype="multipart/form-data" class="space-y-5">
+
+          <!-- Nome do tour -->
+          <div>
+            <label class="block text-sm font-medium mb-1.5">Nome do tour</label>
+            <input type="text" name="display_name" placeholder="Ex: Casa Modelo Sao Paulo"
+                   class="field-input" />
+          </div>
+
           <!-- Nome da URL -->
           <div>
             <label class="block text-sm font-medium mb-1.5">Nome da URL</label>
             <div class="relative">
               <span class="prefix">/</span>
-              <input
-                type="text"
-                name="project_name"
-                placeholder="nome-do-projeto"
-                class="input-with-prefix"
-                pattern="[a-z0-9-]+"
-                title="Use apenas letras minúsculas, números e hífens"
-                required
-                oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g, '')"
-              />
+              <input type="text" name="project_name" placeholder="nome-do-projeto"
+                     class="field-input with-prefix" required
+                     oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g, '')" />
             </div>
-            <p class="text-xs mt-1.5" style="color: rgba(245,245,245,0.35)">Apenas letras minúsculas, números e hífens.</p>
+            <p class="text-xs mt-1.5" style="color:rgba(245,245,245,0.35)">Apenas letras minusculas, numeros e hifens.</p>
+          </div>
+
+          <!-- Imagem miniatura -->
+          <div>
+            <label class="block text-sm font-medium mb-1.5">
+              Imagem miniatura
+              <span class="font-normal" style="color:rgba(245,245,245,0.4)">(opcional)</span>
+            </label>
+            <div id="thumbArea" class="thumb-area" onclick="document.getElementById('thumbInput').click()">
+              <input type="file" id="thumbInput" name="thumbnail" accept="image/*" class="hidden"
+                     onchange="handleThumb(this)" />
+              <div id="thumbContent" class="p-5 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#1a1a1a;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,245,0.4)" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-medium">Selecionar imagem de capa</p>
+                  <p class="text-xs mt-0.5" style="color:rgba(245,245,245,0.4)">JPG, PNG ou WEBP — aparece como preview do tour</p>
+                </div>
+              </div>
+            </div>
+            <!-- Preview da miniatura -->
+            <div id="thumbPreviewWrap" style="display:none; margin-top:8px; position:relative; border-radius:0.75rem; overflow:hidden; aspect-ratio:16/9;">
+              <img id="thumbPreview" src="" alt="Preview" style="width:100%;height:100%;object-fit:cover;" />
+              <button type="button" onclick="clearThumb(event)"
+                      style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+              <button type="button" onclick="document.getElementById('thumbInput').click()"
+                      style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.6);border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#fff;font-size:12px;">
+                Trocar
+              </button>
+            </div>
           </div>
 
           <!-- Upload ZIP -->
           <div>
             <label class="block text-sm font-medium mb-1.5">Arquivo ZIP do tour</label>
-            <div
-              id="dropArea"
-              class="drop-area"
-              onclick="document.getElementById('fileInput').click()"
-              ondragover="event.preventDefault(); this.classList.add('dragover')"
-              ondragleave="this.classList.remove('dragover')"
-              ondrop="handleDrop(event)"
-            >
-              <input
-                type="file"
-                id="fileInput"
-                name="file"
-                accept=".zip"
-                class="hidden"
-                onchange="handleFileSelect(this)"
-                required
-              />
+            <div id="dropArea" class="drop-area"
+                 onclick="document.getElementById('fileInput').click()"
+                 ondragover="event.preventDefault(); this.classList.add('dragover')"
+                 ondragleave="this.classList.remove('dragover')"
+                 ondrop="handleDrop(event)">
+              <input type="file" id="fileInput" name="file" accept=".zip" class="hidden"
+                     onchange="handleFileSelect(this)" required />
               <div id="dropContent">
                 <div class="w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2" style="background:#1a1a1a;">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,245,0.35)" stroke-width="1.5">
@@ -102,7 +146,7 @@
                   </svg>
                 </div>
                 <p class="text-sm font-medium">Arraste ou clique para selecionar</p>
-                <p class="text-xs mt-1" style="color: rgba(245,245,245,0.35)">Somente arquivos .zip</p>
+                <p class="text-xs mt-1" style="color:rgba(245,245,245,0.35)">Somente arquivos .zip</p>
               </div>
             </div>
           </div>
@@ -120,37 +164,54 @@
     </main>
 
     <script>
+      function handleThumb(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('thumbPreview').src = e.target.result;
+          document.getElementById('thumbPreviewWrap').style.display = 'block';
+          document.getElementById('thumbArea').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function clearThumb(e) {
+        e.stopPropagation();
+        document.getElementById('thumbInput').value = '';
+        document.getElementById('thumbPreviewWrap').style.display = 'none';
+        document.getElementById('thumbArea').style.display = 'block';
+      }
+
       function handleDrop(e) {
         e.preventDefault();
         document.getElementById('dropArea').classList.remove('dragover');
         const file = e.dataTransfer.files[0];
         if (file && file.name.endsWith('.zip')) {
-          setFile(file);
+          setZipFile(file);
           const dt = new DataTransfer();
           dt.items.add(file);
           document.getElementById('fileInput').files = dt.files;
         } else {
-          alert('Somente arquivos .zip são aceitos.');
+          alert('Somente arquivos .zip sao aceitos.');
         }
       }
+
       function handleFileSelect(input) {
-        const file = input.files[0];
-        if (file) setFile(file);
+        if (input.files[0]) setZipFile(input.files[0]);
       }
-      function setFile(file) {
+
+      function setZipFile(file) {
         const area = document.getElementById('dropArea');
         area.classList.add('has-file');
         const sizeMB = (file.size / 1024 / 1024).toFixed(1);
-        document.getElementById('dropContent').innerHTML = `
-          <div style="color:#F5C700; width:40px; height:40px; border-radius:50%; border:1.5px solid rgba(245,199,0,0.3); display:flex; align-items:center; justify-content:center; margin: 0 auto 8px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-            </svg>
-          </div>
-          <p class="text-sm font-medium" style="color:#F5C700">${file.name}</p>
-          <p class="text-xs mt-1" style="color: rgba(245,245,245,0.35)">${sizeMB} MB — clique para trocar</p>
-        `;
+        document.getElementById('dropContent').innerHTML =
+          '<div style="color:#F5C700;width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(245,199,0,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">' +
+          '<path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>' +
+          '<path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>' +
+          '<p class="text-sm font-medium" style="color:#F5C700">' + file.name + '</p>' +
+          '<p class="text-xs mt-1" style="color:rgba(245,245,245,0.35)">' + sizeMB + ' MB — clique para trocar</p>';
       }
     </script>
   </body>
