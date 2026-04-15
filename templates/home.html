@@ -110,18 +110,16 @@
                 </div>
                 {% if current_role=='admin' %}
                 <div class="admin-actions flex items-center gap-1 flex-shrink-0">
-                  <form action="/admin/rename/{{ project.name }}" method="POST" class="m-0"
-                        onsubmit="return promptRename(this,'{{ project.name }}')">
-                    <input type="hidden" name="new_name" id="rename-{{ project.name }}" value="{{ project.name }}" />
-                    <button type="submit" title="Renomear" class="p-1.5 rounded-md" style="color:rgba(245,245,245,0.4);"
-                            onmouseover="this.style.color='#F5C700';this.style.background='rgba(245,199,0,0.1)'"
-                            onmouseout="this.style.color='rgba(245,245,245,0.4)';this.style.background='transparent'">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                    </button>
-                  </form>
+                  <button type="button" title="Editar"
+                          onclick="openEditModal('{{ project.name }}','{{ project.display_name }}')"
+                          class="p-1.5 rounded-md" style="color:rgba(245,245,245,0.4);"
+                          onmouseover="this.style.color='#F5C700';this.style.background='rgba(245,199,0,0.1)'"
+                          onmouseout="this.style.color='rgba(245,245,245,0.4)';this.style.background='transparent'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
                   <form action="/admin/delete/{{ project.name }}" method="POST" class="m-0"
                         onsubmit="return confirm('Excluir {{ project.display_name }}?')">
                     <button type="submit" title="Excluir" class="p-1.5 rounded-md" style="color:rgba(245,245,245,0.4);"
@@ -166,17 +164,84 @@
       </div>
     </footer>
 
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="fixed inset-0 z-50 hidden" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);">
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="w-full max-w-md rounded-2xl p-6" style="background:#111;border:1px solid #222;">
+          <div class="flex items-center justify-between mb-5">
+            <h2 class="font-semibold text-base" style="color:#F5F5F5">Editar Tour</h2>
+            <button onclick="closeEditModal()" class="p-1.5 rounded-md" style="color:rgba(245,245,245,0.4);"
+                    onmouseover="this.style.color='#F5F5F5'" onmouseout="this.style.color='rgba(245,245,245,0.4)'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <form id="edit-form" method="POST">
+            <div class="mb-4">
+              <label class="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style="color:rgba(245,245,245,0.5)">
+                Título
+              </label>
+              <input id="modal-display-name" name="display_name" type="text"
+                     placeholder="Ex: Casa Modelo SP"
+                     class="w-full rounded-lg px-3 py-2.5 text-sm outline-none"
+                     style="background:#1a1a1a;border:1px solid #2a2a2a;color:#F5F5F5;"
+                     onfocus="this.style.borderColor='#F5C700'" onblur="this.style.borderColor='#2a2a2a'" />
+              <p class="text-xs mt-1" style="color:rgba(245,245,245,0.3)">Nome exibido nos cards e na página de compartilhamento</p>
+            </div>
+            <div class="mb-6">
+              <label class="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style="color:rgba(245,245,245,0.5)">
+                Slug (URL)
+              </label>
+              <div class="flex items-center rounded-lg overflow-hidden" style="border:1px solid #2a2a2a;"
+                   onfocusin="this.style.borderColor='#F5C700'" onfocusout="this.style.borderColor='#2a2a2a'">
+                <span class="px-3 py-2.5 text-sm border-r" style="color:rgba(245,245,245,0.3);background:#131313;border-color:#2a2a2a;">/</span>
+                <input id="modal-new-name" name="new_name" type="text"
+                       placeholder="ex: casa-modelo-sp"
+                       class="flex-1 px-3 py-2.5 text-sm outline-none font-mono"
+                       style="background:#1a1a1a;color:#F5F5F5;" />
+              </div>
+              <p class="text-xs mt-1" style="color:rgba(245,245,245,0.3)">Apenas letras minusculas, numeros e hifens</p>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" onclick="closeEditModal()"
+                      class="flex-1 py-2.5 rounded-lg text-sm font-medium"
+                      style="background:#1a1a1a;color:rgba(245,245,245,0.6);border:1px solid #222;">
+                Cancelar
+              </button>
+              <button type="submit"
+                      class="flex-1 py-2.5 rounded-lg text-sm font-bold"
+                      style="background:#F5C700;color:#0C0C0C;">
+                Salvar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <script>
-      function promptRename(form, currentName) {
-        const newName = prompt('Novo nome para o tour (slug):', currentName);
-        if (!newName || newName === currentName) return false;
-        if (!/^[a-z0-9_-]+$/.test(newName)) {
-          alert('Use apenas letras minusculas, numeros, hifens e underscores.');
-          return false;
-        }
-        document.getElementById('rename-' + currentName).value = newName;
-        return true;
+      function openEditModal(slug, displayName) {
+        document.getElementById('edit-form').action = '/admin/rename/' + slug;
+        document.getElementById('modal-new-name').value = slug;
+        document.getElementById('modal-display-name').value = displayName;
+        document.getElementById('edit-modal').classList.remove('hidden');
+        setTimeout(() => document.getElementById('modal-display-name').focus(), 50);
       }
+      function closeEditModal() {
+        document.getElementById('edit-modal').classList.add('hidden');
+      }
+      document.getElementById('edit-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditModal();
+      });
+      document.getElementById('edit-form').addEventListener('submit', function(e) {
+        const slug = document.getElementById('modal-new-name').value.trim();
+        if (!slug) { e.preventDefault(); return; }
+        if (!/^[a-z0-9_-]+$/.test(slug)) {
+          e.preventDefault();
+          alert('Slug: use apenas letras minusculas, numeros, hifens e underscores.');
+        }
+      });
     </script>
   </body>
   </html>
