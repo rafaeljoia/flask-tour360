@@ -5,6 +5,7 @@ from functools import wraps
 import os
 import zipfile
 import shutil
+import json
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'bravia360-secret-key-change-in-production')
@@ -28,6 +29,8 @@ USERS = {
 }
 
 
+# ── helpers ──────────────────────────────────────────────────────────────────
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -50,19 +53,35 @@ def admin_required(f):
 
 
 def find_thumbnail_in_project(project_path):
-    """Look for a thumbnail image inside the extracted project folder."""
     candidates = ['thumbnail.jpg', 'thumbnail.jpeg', 'thumbnail.png', 'thumb.jpg',
                   'preview.jpg', 'preview.png', 'cover.jpg', 'cover.png']
     for name in candidates:
         if os.path.isfile(os.path.join(project_path, name)):
             return name
-    # Try root-level images
     for f in os.listdir(project_path):
         ext = os.path.splitext(f)[1].lower()
         if ext in ALLOWED_IMAGE_EXTS:
             return f
     return None
 
+
+def get_project_meta(project_path):
+    """Read optional meta.json for display name; fall back to folder name."""
+    meta_path = os.path.join(project_path, 'meta.json')
+    if os.path.isfile(meta_path):
+        try:
+            with open(meta_path, 'r', encoding='utf-8') as fh:
+                return json.load(fh)
+        except Exception:
+            pass
+    return {}
+
+
+def folder_to_display(name):
+    return name.replace('-', ' ').replace('_', ' ').title()
+
+
+# ── routes ───────────────────────────────────────────────────────────────────
 
 @app.route('/')
 def home():
@@ -71,7 +90,12 @@ def home():
         path = os.path.join(UPLOAD_FOLDER, d)
         if os.path.isdir(path):
             thumb = find_thumbnail_in_project(path)
-            projects.append({'name': d, 'thumbnail': thumb})
+            meta = get_project_meta(path)
+            projects.append({
+                'name': d,
+                'display_name': meta.get('display_name') or folder_to_display(d),
+                'thumbnail': thumb
+            })
     current_user = session.get('user')
     current_role = USERS.get(current_user, {}).get('role') if current_user else None
     return render_template('home.html', projects=projects, current_user=current_user, current_role=current_role)
@@ -103,21 +127,28 @@ def logout():
 def register():
     if request.method == 'POST':
         file = request.files.get('file')
-        project_name = request.form.get('project_name', '').strip()
+        project_name = secure_filename(request.form.get('project_name', '').strip())
+        display_name = request.form.get('display_name', '').strip()
         thumbnail_file = request.files.get('thumbnail')
         if not file or not project_name:
             return 'Arquivo e nome sao obrigatorios', 400
-        project_path = os.path.join(UPLOAD_FOLDER, secure_filename(project_name))
+        project_path = os.path.join(UPLOAD_FOLDER, project_name)
         os.makedirs(project_path, exist_ok=True)
+        # Save and extract ZIP
         zip_path = os.path.join(project_path, 'project.zip')
         file.save(zip_path)
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(project_path)
         os.remove(zip_path)
+        # Save thumbnail if provided
         if thumbnail_file and thumbnail_file.filename:
             ext = os.path.splitext(thumbnail_file.filename)[1].lower()
             if ext in ALLOWED_IMAGE_EXTS:
                 thumbnail_file.save(os.path.join(project_path, THUMB_FILENAME))
+        # Save meta.json with display name
+        meta = {'display_name': display_name or folder_to_display(project_name)}
+        with open(os.path.join(project_path, 'meta.json'), 'w', encoding='utf-8') as fh:
+            json.dump(meta, fh, ensure_ascii=False)
         return redirect(url_for('home'))
     return render_template('register.html')
 
@@ -147,6 +178,31 @@ def rename_project(project):
     os.rename(old_path, new_path)
     return redirect(url_for('home'))
 
+
+# ── share page (Open Graph for WhatsApp / Telegram / social) ─────────────────
+
+@app.route('/<project>')
+def share_page(project):
+    """Landing page with OG meta tags — shared link goes here."""
+    project_path = os.path.join(UPLOAD_FOLDER, project)
+    if not os.path.exists(project_path) or not os.path.isdir(project_path):
+        abort(404)
+    thumb_file = find_thumbnail_in_project(project_path)
+    meta = get_project_meta(project_path)
+    display_name = meta.get('display_name') or folder_to_display(project)
+    base = request.host_url.rstrip('/')
+    thumbnail_url = '{}/{}/{}'.format(base, project, thumb_file) if thumb_file else None
+    share_url = '{}/{}'.format(base, project)
+    return render_template(
+        'share.html',
+        project_name=project,
+        display_name=display_name,
+        thumbnail_url=thumbnail_url,
+        share_url=share_url
+    )
+
+
+# ── static tour files ─────────────────────────────────────────────────────────
 
 @app.route('/<project>/')
 def serve_project(project):
