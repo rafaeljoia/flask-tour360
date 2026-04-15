@@ -83,8 +83,8 @@
         </div>
         <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" style="list-style:none;padding:0;margin:0;">
           {% for project in projects %}
-          <li>
-            <div class="card border rounded-xl p-6 relative" style="border-color:#1a1a1a;background:#0e0e0e;">
+          <li class="tilt-card">
+            <div class="card border rounded-xl p-6 relative" style="border-color:#1a1a1a;background:#0e0e0e;transform-style:preserve-3d;will-change:transform;transition:transform 0.1s ease,box-shadow 0.3s;">
               <!-- Card thumbnail links to share page -->
               <a href="/{{ project.name }}/">
                 <div class="w-full rounded-xl mb-4 overflow-hidden relative" style="aspect-ratio:16/9;background:#131313;">
@@ -360,25 +360,34 @@
     <script>
     (function() {
       // ── Tilt 3D on cards ────────────────────────────────────────
-      document.querySelectorAll('.tilt-card').forEach(function(li) {
-        const card = li.querySelector('.card');
-        li.addEventListener('mousemove', function(e) {
-          const rect = li.getBoundingClientRect();
-          const x = (e.clientX - rect.left) / rect.width  - 0.5;
-          const y = (e.clientY - rect.top)  / rect.height - 0.5;
-          card.style.transform = [
-            'perspective(600px)',
-            'rotateY(' + (x * 14) + 'deg)',
-            'rotateX(' + (-y * 10) + 'deg)',
-            'scale3d(1.03,1.03,1.03)'
-          ].join(' ');
-          card.style.boxShadow = '0 16px 48px rgba(245,199,0,' + (Math.abs(x)+Math.abs(y)) * 0.18 + ')';
+      // Wait for DOM then attach to all tilt-card elements
+      function initTilt() {
+        document.querySelectorAll('.tilt-card').forEach(function(li) {
+          const card = li.querySelector('.card');
+          if (!card) return;
+          li.addEventListener('mousemove', function(e) {
+            const rect = li.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width  - 0.5;
+            const y = (e.clientY - rect.top)  / rect.height - 0.5;
+            card.style.transform = [
+              'perspective(600px)',
+              'rotateY(' + (x * 14) + 'deg)',
+              'rotateX(' + (-y * 10) + 'deg)',
+              'scale3d(1.03,1.03,1.03)'
+            ].join(' ');
+            card.style.boxShadow = '0 16px 48px rgba(245,199,0,' + (Math.abs(x)+Math.abs(y)) * 0.18 + ')';
+          });
+          li.addEventListener('mouseleave', function() {
+            card.style.transform = 'perspective(600px) rotateY(0deg) rotateX(0deg) scale3d(1,1,1)';
+            card.style.boxShadow = '';
+          });
         });
-        li.addEventListener('mouseleave', function() {
-          card.style.transform = '';
-          card.style.boxShadow = '';
-        });
-      });
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTilt);
+      } else {
+        initTilt();
+      }
 
       // ── Three.js ambient particle field on cards section ────────
       const canvas = document.getElementById('cards-canvas');
@@ -391,12 +400,17 @@
       const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
       function resize() {
-        const w = canvas.clientWidth, h = canvas.clientHeight;
-        if (!w || !h) return;
+        const main = canvas.parentElement;
+        if (!main) return;
+        const w = main.clientWidth, h = main.clientHeight || 600;
         renderer.setSize(w, h, false);
+        canvas.style.width  = w + 'px';
+        canvas.style.height = h + 'px';
       }
       resize();
-      new ResizeObserver(resize).observe(canvas);
+      window.addEventListener('resize', resize);
+      // Trigger after layout
+      setTimeout(resize, 200);
 
       // Floating particles
       const N = 120;
