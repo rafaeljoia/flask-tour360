@@ -94,7 +94,8 @@ def home():
             projects.append({
                 'name': d,
                 'display_name': meta.get('display_name') or folder_to_display(d),
-                'thumbnail': thumb
+                'thumbnail': thumb,
+                'header_enabled': meta.get('header_enabled', False)
             })
     current_user = session.get('user')
     current_role = USERS.get(current_user, {}).get('role') if current_user else None
