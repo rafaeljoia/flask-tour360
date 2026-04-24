@@ -183,7 +183,7 @@ def rename_project(project):
     target_path = new_path if new_name != project else old_path
     meta = get_project_meta(target_path)
     meta['display_name'] = display_name or folder_to_display(new_name)
-      meta['header_enabled'] = request.form.get('header_enabled') == 'on'
+    meta['header_enabled'] = request.form.get('header_enabled') == 'on'
     with open(os.path.join(target_path, 'meta.json'), 'w', encoding='utf-8') as fh:
         json.dump(meta, fh, ensure_ascii=False)
     return redirect(url_for('home'))
