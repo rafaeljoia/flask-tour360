@@ -223,11 +223,42 @@ def serve_project(project):
       if not os.path.isfile(index_path):
           abort(404)
       import re
+      meta = get_project_meta(project_path)
       with open(index_path, 'r', encoding='utf-8', errors='ignore') as fh:
           html = fh.read()
       # Rewrite absolute asset paths (/foo.css → ./foo.css) so they resolve
       # relative to /<project>/ instead of the domain root
       html = re.sub(r'((?:href|src|action)=")(/[^"#][^"]*)"', r'\1.\2"', html)
+      # Inject Bravia header if enabled
+      if meta.get('header_enabled'):
+          header_css = (
+              '<style>'
+              '#bravia-header{position:fixed;top:0;left:0;right:0;height:56px;'
+              'background:#0C0C0C;border-bottom:1px solid #1c1c1c;'
+              'display:flex;align-items:center;padding:0 24px;z-index:2147483647;'
+              'font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;}'
+              '#bravia-header a{text-decoration:none;font-size:20px;font-weight:700;letter-spacing:-0.5px;}'
+              'body{margin-top:56px!important;padding-top:0!important;}'
+              '</style>'
+          )
+          header_html = (
+              '<div id="bravia-header">'
+              '<a href="/">'
+              '<span style="color:#F5C700">Bravia</span>'
+              '<span style="color:rgba(245,245,245,0.9)"> 360</span>'
+              '</a>'
+              '</div>'
+          )
+          if '</head>' in html:
+              html = html.replace('</head>', header_css + '</head>', 1)
+          else:
+              html = header_css + html
+          body_match = re.search(r'<body[^>]*>', html, re.IGNORECASE)
+          if body_match:
+              insert_pos = body_match.end()
+              html = html[:insert_pos] + header_html + html[insert_pos:]
+          else:
+              html = header_html + html
       return html, 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 
