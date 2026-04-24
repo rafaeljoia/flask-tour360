@@ -120,7 +120,7 @@
                 {% if current_role=='admin' %}
                 <div class="admin-actions flex items-center gap-1 flex-shrink-0">
                   <button type="button" title="Editar"
-                          onclick="openEditModal('{{ project.name }}','{{ project.display_name }}')"
+                          onclick="openEditModal('{{ project.name }}','{{ project.display_name }}', {{ project.header_enabled | tojson }})"
                           class="p-1.5 rounded-md" style="color:rgba(245,245,245,0.4);"
                           onmouseover="this.style.color='#F5C700';this.style.background='rgba(245,199,0,0.1)'"
                           onmouseout="this.style.color='rgba(245,245,245,0.4)';this.style.background='transparent'">
@@ -207,6 +207,18 @@
                        style="background:#1a1a1a;color:#F5F5F5;" />
               </div>
               <p class="text-xs mt-1" style="color:rgba(245,245,245,0.3)">Apenas letras minusculas, numeros e hifens</p>
+            </div>
+            <div class="mb-4">
+              <label class="flex items-center justify-between gap-3 rounded-lg cursor-pointer" style="border:1px solid #2a2a2a;background:#1a1a1a;padding:12px 16px;">
+                <div class="flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,245,0.4)" stroke-width="1.5">
+                    <rect x="2" y="3" width="20" height="4" rx="1"/>
+                    <path d="M2 10h20M2 17h20"/>
+                  </svg>
+                  <span class="text-sm font-medium" style="color:#F5F5F5">Habilitar header no tour</span>
+                </div>
+                <input type="checkbox" id="modal-header-enabled" name="header_enabled" class="w-4 h-4" style="accent-color:#F5C700;flex-shrink:0;">
+              </label>
             </div>
             <div class="flex gap-2">
               <button type="button" onclick="closeEditModal()"
@@ -395,10 +407,11 @@
     });
 
     // ── Edit modal ──────────────────────────────────────────────────────────────
-    window.openEditModal = function(slug, displayName) {
+    window.openEditModal = function(slug, displayName, headerEnabled) {
       document.getElementById('edit-form').action = '/admin/rename/' + slug;
       document.getElementById('modal-new-name').value = slug;
       document.getElementById('modal-display-name').value = displayName;
+      document.getElementById('modal-header-enabled').checked = !!headerEnabled;
       document.getElementById('edit-modal').classList.remove('hidden');
       setTimeout(() => document.getElementById('modal-display-name').focus(), 50);
     };
