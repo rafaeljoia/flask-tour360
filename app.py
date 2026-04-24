@@ -213,10 +213,19 @@ def share_page(project):
 
 @app.route('/<project>/')
 def serve_project(project):
-    project_path = os.path.join(UPLOAD_FOLDER, project)
-    if not os.path.exists(project_path):
-        abort(404)
-    return send_from_directory(project_path, 'index.html')
+      project_path = os.path.join(UPLOAD_FOLDER, project)
+      if not os.path.exists(project_path):
+          abort(404)
+      index_path = os.path.join(project_path, 'index.html')
+      if not os.path.isfile(index_path):
+          abort(404)
+      import re
+      with open(index_path, 'r', encoding='utf-8', errors='ignore') as fh:
+          html = fh.read()
+      # Rewrite absolute asset paths (/foo.css → ./foo.css) so they resolve
+      # relative to /<project>/ instead of the domain root
+      html = re.sub(r'((?:href|src|action)=")(/[^"#][^"]*)"', r'\1.\2"', html)
+      return html, 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 
 @app.route('/<project>/<path:path>')
