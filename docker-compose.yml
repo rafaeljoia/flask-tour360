@@ -1,24 +1,33 @@
 version: '3.8'
+
 networks:
   dokploy-network:
     external: true
-    
+
 services:
   app:
-    networks:
-      - dokploy-network
     build: .
     container_name: bravia360
     restart: always
+
+    networks:
+      - dokploy-network
+
     volumes:
       - bravia360_uploads:/app/uploads
+
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.tour360.rule=Host(`tour360.braviaglobal.com.br`)
-      - traefik.http.routers.tour360.entrypoints=websecure
-      - traefik.http.routers.tour360.tls=true
-      - traefil.http.routers.tour360.tls.certresolver=letsencrypt
-      - traefik.http.services.tour360.loadbalancer.server.port=5000
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+
+      - "traefik.http.routers.tour360.rule=Host(`tour360.braviaglobal.com.br`)"
+      - "traefik.http.routers.tour360.entrypoints=websecure"
+      - "traefik.http.routers.tour360.tls=true"
+
+      # ❌ REMOVE essa linha por enquanto
+      # - "traefik.http.routers.tour360.tls.certresolver=letsencrypt"
+
+      - "traefik.http.services.tour360.loadbalancer.server.port=5000"
 
 volumes:
   bravia360_uploads:
