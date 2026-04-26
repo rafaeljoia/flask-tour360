@@ -6,8 +6,7 @@ networks:
 
 services:
   app:
-    build: .
-    restart: always
+    image: bravia360:latest
 
     networks:
       - dokploy-network
@@ -15,16 +14,17 @@ services:
     volumes:
       - bravia360_uploads:/app/uploads
 
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=dokploy-network"
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=dokploy-network"
 
-      - "traefik.http.routers.tour360.rule=Host(`tour360.braviaglobal.com.br`)"
-      - "traefik.http.routers.tour360.entrypoints=websecure"
-      - "traefik.http.routers.tour360.tls=true"
-      - "traefik.http.routers.tour360.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.tour360.rule=Host(`tour360.braviaglobal.com.br`)"
+        - "traefik.http.routers.tour360.entrypoints=websecure"
+        - "traefik.http.routers.tour360.tls=true"
+        - "traefik.http.routers.tour360.tls.certresolver=letsencrypt"
 
-      - "traefik.http.services.tour360.loadbalancer.server.port=5000"
+        - "traefik.http.services.tour360.loadbalancer.server.port=5000"
 
 volumes:
   bravia360_uploads:
