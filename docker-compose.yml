@@ -16,18 +16,20 @@ services:
     volumes:
       - bravia360_uploads:/app/uploads
 
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=dokploy-network"
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=dokploy-network"
 
-      - "traefik.http.routers.tour360.rule=Host(`tour360.braviaglobal.com.br`)"
-      - "traefik.http.routers.tour360.entrypoints=websecure"
-      - "traefik.http.routers.tour360.tls=true"
+        # ROUTER
+        - "traefik.http.routers.tour360.rule=Host(`tour360.braviaglobal.com.br`)"
+        - "traefik.http.routers.tour360.entrypoints=websecure"
+        - "traefik.http.routers.tour360.tls=true"
 
-      # ❌ REMOVE essa linha por enquanto
-      # - "traefik.http.routers.tour360.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.tour360.service=tour360"
 
-      - "traefik.http.services.tour360.loadbalancer.server.port=5000"
+        # SERVICE
+        - "traefik.http.services.tour360.loadbalancer.server.port=5000"
 
 volumes:
   bravia360_uploads:
