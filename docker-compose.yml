@@ -7,7 +7,6 @@ networks:
 services:
   app:
     build: .
-    container_name: bravia360
     restart: always
 
     networks:
@@ -21,14 +20,11 @@ services:
         - "traefik.enable=true"
         - "traefik.docker.network=dokploy-network"
 
-        # ROUTER
         - "traefik.http.routers.tour360.rule=Host(`tour360.braviaglobal.com.br`)"
         - "traefik.http.routers.tour360.entrypoints=websecure"
         - "traefik.http.routers.tour360.tls=true"
 
-        - "traefik.http.routers.tour360.service=tour360"
-
-        # SERVICE
+        # IMPORTANTE: deixar o Traefik resolver automaticamente
         - "traefik.http.services.tour360.loadbalancer.server.port=5000"
 
 volumes:
