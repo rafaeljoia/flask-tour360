@@ -9,7 +9,9 @@ services:
       - bravia360_uploads:/app/uploads
     labels:
       - traefik.enable=true
-      - "traefik.http.routers.bravia.rule=Host(`tour360.braviaglobal.com.br`)"
+      - traefik.http.routers.bravia.rule=Host(`tour360.braviaglobal.com.br`)
+      - traefik.http.routers.bravia.entrypoint=websecure
+      - traefil.http.routers.bravia.tls.certresolver=letsencrypt
       - traefik.http.services.bravia.loadbalancer.server.port=5000
 
 volumes:
