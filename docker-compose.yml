@@ -19,6 +19,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=dokploy-network"
 
+      # TOUR360
       - "traefik.http.routers.tour360.rule=Host(`tour360.braviaglobal.com.br`)"
       - "traefik.http.routers.tour360.entrypoints=websecure"
       - "traefik.http.routers.tour360.tls=true"
