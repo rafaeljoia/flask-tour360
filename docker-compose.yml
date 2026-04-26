@@ -10,7 +10,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.tour360.rule=Host(`tour360.braviaglobal.com.br`)
-      - traefik.http.routers.tour360.entrypoint=websecure
+      - traefik.http.routers.tour360.entrypoints=websecure
       - traefil.http.routers.tour360.tls.certresolver=letsencrypt
       - traefik.http.services.tour360.loadbalancer.server.port=5000
 
