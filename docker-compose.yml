@@ -6,7 +6,7 @@ networks:
 
 services:
   app:
-    image: bravia360:latest
+    build: .
     restart: always
 
     networks:
