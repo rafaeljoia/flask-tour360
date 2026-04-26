@@ -1,7 +1,12 @@
 version: '3.8'
-
+networks:
+  dokploy-network:
+    external: true
+    
 services:
   app:
+    networks:
+      - dokploy-network
     build: .
     container_name: bravia360
     restart: always
