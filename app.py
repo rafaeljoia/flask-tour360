@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, send_from_directory, abort, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
 from functools import wraps
 import os
 import zipfile
@@ -8,6 +9,7 @@ import shutil
 import json
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = os.environ.get('SECRET_KEY', 'bravia360-secret-key-change-in-production')
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
