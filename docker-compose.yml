@@ -6,7 +6,7 @@ networks:
 
 services:
   app:
-    build: .
+    image: bravia360:latest
     restart: always
 
     networks:
@@ -19,13 +19,11 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=dokploy-network"
 
-      # ROUTER
       - "traefik.http.routers.tour360.rule=Host(`tour360.braviaglobal.com.br`)"
       - "traefik.http.routers.tour360.entrypoints=websecure"
       - "traefik.http.routers.tour360.tls=true"
       - "traefik.http.routers.tour360.tls.certresolver=letsencrypt"
 
-      # SERVICE (porta da sua aplicação Flask)
       - "traefik.http.services.tour360.loadbalancer.server.port=5000"
 
 volumes:
